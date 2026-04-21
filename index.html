@@ -142,6 +142,53 @@
     line-height: 1.6;
   }
 
+  /* Criteria box */
+  .criteria-box {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .criteria-box summary {
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #2c7a7b;
+    user-select: none;
+  }
+  .criteria-box summary:hover { text-decoration: underline; }
+  .criteria-inner { margin-top: 12px; }
+  .criteria-section {
+    margin-bottom: 12px;
+  }
+  .criteria-section h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .criteria-ok h4 { background: #c6f6d5; color: #276749; }
+  .criteria-ng h4 { background: #fed7d7; color: #9b2c2c; }
+  .criteria-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .criteria-section ul li {
+    padding: 3px 0 3px 16px;
+    position: relative;
+  }
+  .criteria-ok ul li::before { content: "✓ "; color: #38a169; font-weight: bold; position: absolute; left: 0; }
+  .criteria-ng ul li::before { content: "✗ "; color: #e53e3e; font-weight: bold; position: absolute; left: 0; }
+  .criteria-section ul li span.ex {
+    color: #888;
+    font-size: 12px;
+  }
+
   .hidden { display: none; }
 </style>
 </head>
@@ -159,6 +206,36 @@
     <strong>使い方：</strong>報告書PDFをドラッグ&ドロップ（または選択）→「変換開始」→ ダウンロード。<br>
     フォントが全て画像化されるため、楽楽明細の郵送代行で文字化けしません。複数ファイル一括OK。
   </div>
+
+  <details class="criteria-box">
+    <summary>楽楽明細 郵送代行 フォント判定基準を確認する</summary>
+    <div class="criteria-inner">
+      <div class="criteria-section criteria-ok">
+        <h4>郵送代行 OK のケース</h4>
+        <ul>
+          <li>フォント情報なし（文書のプロパティ→フォントタブが空欄）</li>
+          <li>埋め込みサブセット or 埋め込み、かつエンコーディングが「ビルトイン以外」
+            <span class="ex">（例: Identity-H、MS-Mincho 埋め込みサブセット / TrueType(CID) / Identity-H）</span>
+          </li>
+        </ul>
+      </div>
+      <div class="criteria-section criteria-ng">
+        <h4>郵送代行 NG のケース → このツールで変換してください</h4>
+        <ul>
+          <li>フォント情報はあるが、エンコーディングが「ビルトイン」
+            <span class="ex">（例: TrueType / エンコーディング:ビルトイン）</span>
+          </li>
+          <li>フォント情報はあるが、「埋め込みサブセット or 埋め込み」の記載がない
+            <span class="ex">（例: Helvetica(Type1/Ansi)、MSGothic(TrueType CID / 90ms-RKSJ-H)）</span>
+          </li>
+        </ul>
+      </div>
+      <p style="color:#666; font-size:12px; margin-top:8px;">
+        ※ フォント情報は Acrobat Reader の「ファイル→プロパティ→フォント」タブで確認できます。<br>
+        NG に該当するPDFをこのツールで変換すると、全テキストが画像化されて郵送代行に対応したPDFになります。
+      </p>
+    </div>
+  </details>
 
   <div class="drop-zone" id="dropZone">
     <div class="icon">📄</div>
