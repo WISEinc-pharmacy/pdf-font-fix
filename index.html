@@ -6,7 +6,7 @@
 <title>PDF フォント変換ツール - つなぐ薬局</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🅦</text></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -187,7 +187,7 @@
 <script>
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-  const { jsPDF } = window.jspdf;
+  const { PDFDocument } = PDFLib;
   let pdfFiles = [];
   let convertedBlobs = [];
 
@@ -280,20 +280,13 @@
 
     statusEl.textContent = `変換中... (0/${totalPages}ページ)`;
 
-    // Get first page to determine orientation
-    const firstPage = await pdf.getPage(1);
-    const firstVp = firstPage.getViewport({ scale: 1 });
-
-    let doc;
-    // Determine page size (match original)
-    const pdfWidthMM = firstVp.width * 25.4 / 72;
-    const pdfHeightMM = firstVp.height * 25.4 / 72;
-    const orientation = pdfWidthMM > pdfHeightMM ? 'landscape' : 'portrait';
-    doc = new jsPDF({ orientation, unit: 'mm', format: [pdfWidthMM, pdfHeightMM] });
+    // Create new PDF with pdf-lib
+    const doc = await PDFDocument.create();
 
     for (let p = 1; p <= totalPages; p++) {
       const page = await pdf.getPage(p);
       const viewport = page.getViewport({ scale });
+      const origViewport = page.getViewport({ scale: 1 });
 
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
@@ -306,20 +299,23 @@
 
       await page.render({ canvasContext: ctx, viewport }).promise;
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      // Convert canvas to JPEG bytes
+      const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      const jpegBytes = Uint8Array.from(atob(jpegDataUrl.split(',')[1]), c => c.charCodeAt(0));
 
-      if (p > 1) {
-        const pVp = page.getViewport({ scale: 1 });
-        const wMM = pVp.width * 25.4 / 72;
-        const hMM = pVp.height * 25.4 / 72;
-        const ori = wMM > hMM ? 'landscape' : 'portrait';
-        doc.addPage([wMM, hMM], ori);
-      }
+      // Embed JPEG image in pdf-lib
+      const image = await doc.embedJpg(jpegBytes);
 
-      const pageVp = page.getViewport({ scale: 1 });
-      const wMM = pageVp.width * 25.4 / 72;
-      const hMM = pageVp.height * 25.4 / 72;
-      doc.addImage(imgData, 'JPEG', 0, 0, wMM, hMM);
+      // Add page with original PDF dimensions (in points)
+      const newPage = doc.addPage([origViewport.width, origViewport.height]);
+
+      // Draw image to fill the entire page
+      newPage.drawImage(image, {
+        x: 0,
+        y: 0,
+        width: origViewport.width,
+        height: origViewport.height,
+      });
 
       const pct = Math.round((p / totalPages) * 100);
       progressEl.style.width = pct + '%';
@@ -329,7 +325,8 @@
       await new Promise(r => setTimeout(r, 10));
     }
 
-    const blob = doc.output('blob');
+    const pdfBytes = await doc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     convertedBlobs[index] = { blob, name: file.name.replace('.pdf', '_変換済.pdf') };
 
     statusEl.textContent = `完了 (${totalPages}ページ, ${formatSize(blob.size)})`;
