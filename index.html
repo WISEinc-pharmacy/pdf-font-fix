@@ -203,8 +203,21 @@
 
 <div class="container">
   <div class="info-box">
-    <strong>使い方：</strong>報告書PDFをドラッグ&ドロップ（または選択）→「変換開始」→ ダウンロード。<br>
-    フォントが全て画像化されるため、楽楽明細の郵送代行で文字化けしません。複数ファイル一括OK。
+    <strong>このツールでできること</strong><br>
+    PDFのテキストを全ページ画像化（JPEG変換）して、新しいPDFとして再構成します。<br>
+    見た目はそのまま、フォント情報が除去されるため、楽楽明細の郵送代行で文字化け・印刷エラーが起きなくなります。
+    <div style="margin-top:10px;">
+      <strong>変換の仕組み：</strong>各ページを指定した画質（dpi）で画像に変換 → 画像をPDFに再埋め込み → ファイル名末尾に「_変換済」を付けて出力
+    </div>
+    <div style="margin-top:10px;">
+      <strong>設定できること：</strong>
+      <ul style="margin:4px 0 0 20px; line-height:1.8;">
+        <li><b>画質（dpi）</b> — 200dpi（軽量・やや粗い）/ 300dpi（推奨・印刷品質）/ 400dpi（高品質・時間かかる）</li>
+      </ul>
+    </div>
+    <div style="margin-top:10px;">
+      <strong>使い方：</strong>PDFをドラッグ&ドロップ（または選択）→「変換開始」→ ダウンロード。複数ファイル一括OK。
+    </div>
   </div>
 
   <details class="criteria-box">
